@@ -60,3 +60,65 @@ clinical_data_manager = Agent(
     tools=[SerperDevTool()],
 )
 
+medical_writer = Agent(
+    config=agents_config["medical_writer"],
+)
+
+# Creating Tasks
+define_objectives_task = Task(
+    config=tasks_config["define_study_objectives"],
+    agent=principal_investigator
+)
+
+design_stats_task = Task(
+    config=tasks_config["design_statistical_plan"],
+    agent=biostatistician
+)
+
+plan_dm_task = Task(
+    config=tasks_config["plan_data_management"],
+    agent=clinical_data_manager
+)
+
+draft_protocol_task = Task(
+    config=tasks_config["draft_protocol"],
+    agent=medical_writer,
+    context=[define_objectives_task, design_stats_task, plan_dm_task],
+    output_pydantic=ClinicalProtocol,
+)
+
+# Creating Clinical Study Team
+clinical_study_team = Crew(
+    agents=[
+        principal_investigator,
+        biostatistician,
+        clinical_data_manager,
+        medical_writer,
+    ],
+    tasks=[
+        define_objectives_task,
+        design_stats_task,
+        plan_dm_task,
+        draft_protocol_task,
+    ],
+    verbose=True,
+)
+
+# Example Execution
+print("Starting Clinical Study Design Team...")
+result = clinical_study_team.kickoff(
+    inputs={"medical_condition": "Type 2 Diabetes Mellitus with early-stage kidney disease"}
+)
+
+# Display Results
+print("\n\n########################")
+print("## CLINICAL PROTOCOL ##")
+print("########################\n")
+print(f"Title: {result.title}\n")
+print(f"Summary: {result.summary}\n")
+print("Sections:")
+for section in result.protocol_sections:
+    print(f"--- {section.section_title} ---")
+    print(textwrap.fill(section.content, width=80))
+    print("\n")
+
