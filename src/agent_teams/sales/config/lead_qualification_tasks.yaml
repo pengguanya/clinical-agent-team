@@ -41,3 +41,47 @@ cultural_fit_analysis:
       - Product: Multi-Agent Orchestration Platform
       - ICP: Enterprise companies looking into Agentic automation.
       - Pitch: We are a platform that allows you to orchestrate AI Agents for automations to any vertical.
+
+    - Lead Data:
+      {lead_data}
+  expected_output: >
+    A detailed assessment report including:
+    - Cultural fit score (0-10) based on the alignment of values and strategic objectives.
+    - Supporting analysis and comments providing context for the cultural fit score.
+
+lead_scoring_and_validation:
+  description: >
+    Aggregate the collected data and perform the following steps:
+    - Score Calculation: Based on predefined criteria, calculate a final lead score (0-100). Consider factors such as:
+      - Role Relevance
+      - Company Size
+      - Market Presence
+      - Cultural Fit
+    - Scoring Criteria Documentation: List the criteria used to determine the score.
+    - Validation: Review the collected data and the calculated score for consistency and accuracy. Make adjustments if necessary.
+    - Final Report: Compile a summary report that includes the final validated lead score, the criteria used, and any validation notes.
+
+    - Our Company and Product:
+      - Company Name: CrewAI
+      - Product: Multi-Agent Orchestration Platform
+      - ICP: Enterprise companies looking into Agentic automation.
+      - Pitch: We are a platform that allows you to orchestrate AI Agents for automations to any vertical.
+
+    - Lead Data:
+      {lead_data}
+  expected_output: >
+    A validated lead score report including:
+    - Final lead score (0-100) with scoring criteria.
+    - A summary report detailing the scoring process, criteria used, and validation notes.
+
+
+
+
+
+
+
+
+
+
+
+    
