@@ -92,3 +92,97 @@ crew = Crew(
 
 #### Parameters
 
+- `agents` (list): List of agents in the crew
+- `tasks` (list): List of tasks for the crew to execute
+- `verbose` (bool): Whether to print detailed logs
+
+#### Methods
+
+- `kickoff(inputs)`: Start the crew's execution with the given inputs
+- `get_agents()`: Return the agents in the crew
+- `get_tasks()`: Return the tasks in the crew
+
+## Tools
+
+### SerperDevTool
+
+Tool for performing web searches using the Serper.dev API.
+
+```python
+from crewai_tools import SerperDevTool
+
+search_tool = SerperDevTool()
+```
+
+#### Methods
+
+- `search(query)`: Perform a web search with the given query
+
+### ScrapeWebsiteTool
+
+Tool for scraping content from websites.
+
+```python
+from crewai_tools import ScrapeWebsiteTool
+
+scrape_tool = ScrapeWebsiteTool()
+```
+
+#### Methods
+
+- `scrape(url)`: Scrape content from the given URL
+
+### WebsiteSearchTool
+
+Tool for searching within specific websites.
+
+```python
+from crewai_tools import WebsiteSearchTool
+
+website_search_tool = WebsiteSearchTool()
+```
+
+#### Methods
+
+- `search(query, website)`: Search for the query within the specified website
+
+## Utility Functions
+
+### load_yaml_config
+
+Load configuration from YAML files.
+
+```python
+def load_yaml_config(file_path):
+    with open(file_path, "r") as file:
+        return yaml.safe_load(file)
+```
+
+#### Parameters
+
+- `file_path` (str): Path to the YAML file
+
+#### Returns
+
+- `dict`: The loaded configuration as a dictionary
+
+### format_markdown
+
+Format markdown content for better presentation.
+
+```python
+def format_markdown(content, title):
+    formatted_content = f"""# {title}
+
+{content}"""
+    return formatted_content
+```
+
+#### Parameters
+
+- `content` (str): Markdown content to format
+- `title` (str): Title for the formatted content
+
+#### Returns
+
+- `str`: The formatted markdown content 
