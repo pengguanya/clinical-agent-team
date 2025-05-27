@@ -1,0 +1,73 @@
+monitor_market_intelligence:
+  description: >
+    Monitor and analyze the latest developments and use cases related to
+    {topic} and AI technology in the {sector}. For example : {examples}. Identify and summarize the most 
+    compelling opportunities and successful implementations that demonstrate
+    clear business value. Utilize research tools to gather evidence of 
+    real-world impact and ROI. Focus on detecting emerging trends,
+    innovative applications, and significant technical achievements that
+    showcase AI's transformative potential in {sector}. All findings should
+    be properly referenced with credible sources.
+  expected_output: >
+    A detailed intelligence report highlighting the most promising AI
+    opportunities and implementations in {sector} related to {topic}. This report should include
+    key technical capabilities, business benefits achieved, and supporting
+    evidence that can guide content development. All information and claims
+    must be accompanied by proper citations and references.
+
+analyze_market_data:
+  description: >
+    Analyze market data and trends related to {topic} and AI adoption in {sector}, with a focus
+    on uncovering meaningful patterns in implementation success rates, ROI metrics,
+    and technical capability maturity. Process datasets to identify key indicators
+    of AI readiness and impact across the sector. Pay special attention to metrics
+    that demonstrate business value creation, such as efficiency gains, cost savings,
+    and new revenue opportunities enabled by AI technologies. All data sources and
+    analysis methodologies should be clearly referenced.
+  expected_output: >
+    A comprehensive analysis report that translates complex technical data into clear
+    insights about AI's real-world impact in {sector} regarding {topic}. The report should highlight
+    key adoption trends, success metrics, and patterns that demonstrate where and how
+    AI creates measurable business value. Include data-backed recommendations to guide
+    content development around the most promising AI use cases and opportunities.
+    All data points, statistics, and findings must be properly cited with reliable sources.
+
+create_content:
+  description: >
+    Based on the insights provided by the Market Intelligence and
+    Data Analyst agents, create high-quality, structured content that
+    effectively communicates AI use cases and market insights for {topic} in {sector}.
+    Transform complex technical insights into compelling, well-structured
+    professional reports and engaging content. Focus on translating technical
+    capabilities into clear business benefits and creating persuasive ROI
+    stories backed by data. Produce various content formats including
+    detailed reports, articles and social media posts that highlight the
+    transformative potential of AI in {sector}. Ensure all claims, statistics,
+    and examples are properly referenced with credible sources.
+  expected_output: >
+    A comprehensive set of professional content pieces about {topic} and AI in {sector},
+    including detailed technical reports, articles and social media posts that
+    effectively communicate both technical capabilities and business value.
+    Content should demonstrate clear ROI and business benefits while maintaining
+    technical accuracy. All information must be properly cited with references
+    to authoritative sources.
+
+quality_assurance:
+  description: >
+    Review all AI use case reports and content about {topic} for {sector} to ensure they meet
+    the highest standards of technical accuracy, clarity, and professional
+    presentation. Validate all technical claims and verify data points while
+    optimizing content structure. Focus on ensuring content is both technically
+    accurate and easily digestible, with proper markdown formatting including
+    headers, sections, and supporting elements that enhance readability. Pay
+    special attention to the accurate representation of AI capabilities and
+    proper citation of implementation evidence. Verify that all information
+    is properly referenced and citations meet professional standards.
+  expected_output: >
+    A thoroughly validated set of content pieces about {topic} and AI in {sector}, with
+    verified technical claims and optimized structure using proper markdown
+    formatting. Content should maintain the highest standards of technical
+    accuracy while being clear and accessible, with well-organized sections
+    containing at least 2 detailed paragraphs each. All business value claims
+    should be supported by concrete implementation evidence and include proper
+    citations to credible sources.
