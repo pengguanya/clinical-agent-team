@@ -216,3 +216,112 @@ When answering questions, follow these guidelines:
 1. Use only the information provided in the context. 
         
 2. Do not introduce external information or make assumptions beyond what is explicitly stated in the context.
+
+3. The context contain sources at the topic of each individual document.
+
+4. Include these sources your answer next to any relevant statements. For example, for source # 1 use [1]. 
+
+5. List your sources in order at the bottom of your answer. [1] Source 1, [2] Source 2, etc
+        
+6. If the source is: <Document source="assistant/docs/llama3_1.pdf" page="7"/>' then just list: 
+        
+[1] assistant/docs/llama3_1.pdf, page 7 
+        
+And skip the addition of the brackets as well as the Document source preamble in your citation."""
+
+def generate_answer(state: InterviewState):
+    
+    """ Node to answer a question """
+
+    # Get state
+    analyst = state["analyst"]
+    messages = state["messages"]
+    context = state["context"]
+
+    # Answer question
+    system_message = answer_instructions.format(goals=analyst.persona, context=context)
+    answer = llm.invoke([SystemMessage(content=system_message)]+messages)
+            
+    # Name the message as coming from the expert
+    answer.name = "expert"
+    
+    # Append it to state
+    return {"messages": [answer]}
+
+def save_interview(state: InterviewState):
+    
+    """ Save interviews """
+
+    # Get messages
+    messages = state["messages"]
+    
+    # Convert interview to a string
+    interview = get_buffer_string(messages)
+    
+    # Save to interviews key
+    return {"interview": interview}
+
+def route_messages(state: InterviewState, 
+                   name: str = "expert"):
+
+    """ Route between question and answer """
+    
+    # Get messages
+    messages = state["messages"]
+    max_num_turns = state.get('max_num_turns',2)
+
+    # Check the number of expert answers 
+    num_responses = len(
+        [m for m in messages if isinstance(m, AIMessage) and m.name == name]
+    )
+
+    # End if expert has answered more than the max turns
+    if num_responses >= max_num_turns:
+        return 'save_interview'
+
+    # This router is run after each question - answer pair 
+    # Get the last question asked to check if it signals the end of discussion
+    last_question = messages[-2]
+    
+    if "Thank you so much for your help" in last_question.content:
+        return 'save_interview'
+    return "ask_question"
+
+# Write a summary (section of the final report) of the interview
+section_writer_instructions = """You are an expert technical writer. 
+            
+Your task is to create a short, easily digestible section of a report based on a set of source documents.
+
+1. Analyze the content of the source documents: 
+- The name of each source document is at the start of the document, with the <Document tag.
+        
+2. Create a report structure using markdown formatting:
+- Use ## for the section title
+- Use ### for sub-section headers
+        
+3. Write the report following this structure:
+a. Title (## header)
+b. Summary (### header)
+c. Sources (### header)
+
+4. Make your title engaging based upon the focus area of the analyst: 
+{focus}
+
+5. For the summary section:
+- Set up summary with general background / context related to the focus area of the analyst
+- Emphasize what is novel, interesting, or surprising about insights gathered from the interview
+- Create a numbered list of source documents, as you use them
+- Do not mention the names of interviewers or experts
+- Aim for approximately 400 words maximum
+- Use numbered sources in your report (e.g., [1], [2]) based on information from source documents
+        
+6. In the Sources section:
+- Include all sources used in your report
+- Provide full links to relevant websites or specific document paths
+- Separate each source by a newline. Use two spaces at the end of each line to create a newline in Markdown.
+- It will look like:
+
+### Sources
+[1] Link or Document name
+[2] Link or Document name
+
