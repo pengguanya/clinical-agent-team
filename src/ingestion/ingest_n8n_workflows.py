@@ -119,3 +119,125 @@ def analyze_workflow(workflow_json):
         Suggestions:
         """
     ]
+    
+    results = []
+    for summary_prompt in summary_prompts:
+        results.append(llm.invoke([HumanMessage(content=summary_prompt)]).content)
+    
+    return results
+
+def generate_embedding(text):
+    """
+    Creates vector embedding from text using configured embedding model.
+
+    Args:
+        text: String to generate embedding for
+
+    Returns:
+        list[float]: Vector embedding of input text
+    """    
+    return embeddings.embed_query(text)
+
+def store_in_supabase(workflow_id, workflow_name, workflow_description, workflow_info, workflow_json, n8n_demo, summaries):
+    """
+    Stores workflow data and generated analysis in Supabase.
+
+    Combines LLM-generated summaries, creates embedding, and stores complete workflow
+    record with metadata.
+
+    Args:
+        workflow_id: Unique identifier for the workflow
+        workflow_name: Name of the workflow
+        workflow_description: Description of the workflow
+        workflow_info: Additional workflow information
+        workflow_json: Raw workflow JSON data
+        n8n_demo: HTML component string for workflow visualization
+        summaries: List of three LLM-generated summaries [accomplishment, nodes, suggestions]
+    """    
+    combined_summaries = "\n\n".join(summaries)
+    embedding = generate_embedding(combined_summaries)
+    
+    data = {
+        "workflow_id": workflow_id,
+        "workflow_name": workflow_name,
+        "workflow_description": workflow_description,
+        "workflow_json": workflow_json,
+        "n8n_demo": n8n_demo,
+        "summary_accomplishment": summaries[0],
+        "summary_nodes": summaries[1],
+        "summary_suggestions": summaries[2],
+        "embedding": embedding,
+        "content": combined_summaries,
+        "metadata": {
+            "workflow_id": workflow_id,
+            "workflow_name": workflow_name,
+            "workflow_description": workflow_description,
+            "n8n_demo": n8n_demo,
+            "workflow_json": json.loads(workflow_json)            
+        }
+    }
+    supabase.table("workflows").insert(data).execute()
+
+def main():
+    """
+    Processes n8n workflow templates and stores them in Supabase.
+    
+    Iterates through workflow IDs in n8n workflow library:
+    1. Fetches workflow template
+    2. Checks legitimacy using LLM
+    3. For legitimate workflows:
+        - Processes into n8n-demo component
+        - Generates LLM analysis summaries
+        - Stores in Supabase with embeddings
+    4. Stops after [max_consecutive_failures] consecutive failures
+    
+    Rate limits:
+        - 0.5s delay between requests
+        - Max [max_consecutive_failures] consecutive failures
+    """    
+    max_id = 2500
+    consecutive_failures = 0
+    max_consecutive_failures = 1000
+
+    for workflow_id in range(1, max_id + 1):
+        workflow_data = fetch_workflow(workflow_id)
+        
+        if workflow_data:
+            workflow_name = json.dumps(workflow_data['workflow']['name'])
+            workflow_description = json.dumps(workflow_data['workflow']['description'])
+            workflow_json = json.dumps(workflow_data['workflow']['workflow'])
+            workflow_info = f"Name: {workflow_name}\nDescription: {workflow_description}\n\nJSON:\n{workflow_json}"
+
+            # print(json.dumps(workflow_data['workflow'], indent=2))
+            # print(process_workflow(workflow_data))
+            # continue
+
+            try:
+                legitimacy = check_workflow_legitimacy(workflow_info)
+            except:
+                continue
+            print(legitimacy)
+            
+            if legitimacy == "GOOD":
+                n8n_demo = process_workflow(workflow_data)
+                summaries = analyze_workflow(workflow_info)
+                
+                print(f"ID: {workflow_id}")
+                print(n8n_demo)
+                for summary in summaries:
+                    print(summary)
+                print()
+                
+                store_in_supabase(workflow_id, workflow_name, workflow_description, workflow_info, workflow_json, n8n_demo, summaries)
+            
+            consecutive_failures = 0
+        else:
+            consecutive_failures += 1
+            if consecutive_failures >= max_consecutive_failures:
+                print(f"Reached {max_consecutive_failures} consecutive failures. Stopping.")
+                break
+        
+        time.sleep(0.5)
+
+if __name__ == "__main__":
+    main()
