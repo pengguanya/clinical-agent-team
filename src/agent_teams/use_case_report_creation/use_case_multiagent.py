@@ -88,3 +88,93 @@ analyze_market_data_task = Task(
 create_content_task = Task(
     config=tasks_config["create_content"],
     agent=content_creator_agent,
+    context=[monitor_market_intelligence_task, analyze_market_data_task],
+)
+
+quality_assurance_task = Task(
+    config=tasks_config["quality_assurance"],
+    agent=quality_assurance_agent,
+    output_pydantic=ContentOutput,
+)
+
+# Creating Crew
+content_report_creation_crew = Crew(
+    agents=[
+        market_intelligence_agent,
+        data_analyst_agent,
+        content_creator_agent,
+        quality_assurance_agent,
+    ],
+    tasks=[
+        monitor_market_intelligence_task,
+        analyze_market_data_task,
+        create_content_task,
+        quality_assurance_task,
+    ],
+    verbose=True,
+)
+
+# inputs = {
+#     "sector": "Public Sector",
+#     "topic": "AI for public service and citizen engagement",
+#     "examples": "AI for Public Service and Citizen Engagement: LLM-driven assistants that help citizens apply for permits, schedule appointments, and file complaints with minimal human intervention; Automated AI responses for common inquiries; NLP-based chatbots for citizen feedback analysis and service improvement.",
+# }
+# inputs = {
+#     "sector": "Public Sector",
+#     "topic": "AI for tourism and cultural heritage",
+#     "examples": "AI for Tourism and Cultural Heritage: AI-based visitor flow optimization to reduce congestion in major tourist areas; Smart tourism assistants providing personalized recommendations and translations.",
+# }
+# inputs = {
+#     "sector": "Public Sector",
+#     "topic": "Smart Contract and Procurement Monitoring",
+#     "examples": "Smart Contract and Procurement Monitoring: An agentic system that scrapes, processes, and recommends relevant public contracts based on specific criteria set by municipalities; Automatically highlights potential inefficiencies in resource allocation; Predictive analytics for contract renewal needs and budgeting.",
+# }
+inputs = {
+    "sector": "Public Sector",
+    "topic": "Budget Planning and Cost Control",
+    "examples": "",
+}
+
+result = content_report_creation_crew.kickoff(inputs=inputs)
+
+# Access social media posts directly
+posts = result.social_media_posts
+for post in posts:
+    platform = post.platform
+    content = post.content
+    print(platform)
+    wrapped_content = textwrap.fill(content, width=50)
+    print(wrapped_content)
+    print("-" * 50)
+
+# Display article directly
+display(Markdown(result.article))
+
+# Save the article to a file
+with open(f"{inputs['topic']}_article.md", "w") as file:
+    file.write(result.article)
+
+# Save the social media posts to a file
+with open(f"{inputs['topic']}_social_media_posts.md", "w") as file:
+    for post in posts:
+        file.write(f"Platform: {post.platform}\n")
+        file.write(f"Content: {post.content}\n")
+        file.write("-" * 50 + "\n")
+
+
+def format_markdown(content):
+    # Add H1 title and proper spacing
+    formatted_content = f"""# AI Applications in Budget Planning and Cost Control
+
+## Professional Report: AI Applications in Budget Planning and Cost Control for the Public Sector
+
+### Executive Summary
+
+{content.replace('#### Executive Summary\n', '').strip()}"""
+
+    # Save the formatted content
+    with open("budget_planning_report.md", "w", encoding="utf-8") as f:
+        f.write(formatted_content)
+
+# Use the formatting function
+format_markdown(result.article)
