@@ -325,3 +325,112 @@ c. Sources (### header)
 [1] Link or Document name
 [2] Link or Document name
 
+7. Be sure to combine sources. For example this is not correct:
+
+[3] https://ai.meta.com/blog/meta-llama-3-1/
+[4] https://ai.meta.com/blog/meta-llama-3-1/
+
+There should be no redundant sources. It should simply be:
+
+[3] https://ai.meta.com/blog/meta-llama-3-1/
+        
+8. Final review:
+- Ensure the report follows the required structure
+- Include no preamble before the title of the report
+- Check that all guidelines have been followed"""
+
+def write_section(state: InterviewState):
+
+    """ Node to write a section """
+
+    # Get state
+    interview = state["interview"]
+    context = state["context"]
+    analyst = state["analyst"]
+   
+    # Write section using either the gathered source docs from interview (context) or the interview itself (interview)
+    system_message = section_writer_instructions.format(focus=analyst.description)
+    section = llm.invoke([SystemMessage(content=system_message)]+[HumanMessage(content=f"Use this source to write your section: {context}")]) 
+                
+    # Append it to state
+    return {"sections": [section.content]}
+
+# Add nodes and edges 
+interview_builder = StateGraph(InterviewState)
+interview_builder.add_node("ask_question", generate_question)
+interview_builder.add_node("search_web", search_web)
+interview_builder.add_node("search_wikipedia", search_wikipedia)
+interview_builder.add_node("answer_question", generate_answer)
+interview_builder.add_node("save_interview", save_interview)
+interview_builder.add_node("write_section", write_section)
+
+# Flow
+interview_builder.add_edge(START, "ask_question")
+interview_builder.add_edge("ask_question", "search_web")
+interview_builder.add_edge("ask_question", "search_wikipedia")
+interview_builder.add_edge("search_web", "answer_question")
+interview_builder.add_edge("search_wikipedia", "answer_question")
+interview_builder.add_conditional_edges("answer_question", route_messages,['ask_question','save_interview'])
+interview_builder.add_edge("save_interview", "write_section")
+interview_builder.add_edge("write_section", END)
+
+def initiate_all_interviews(state: ResearchGraphState):
+
+    """ Conditional edge to initiate all interviews via Send() API or return to create_analysts """    
+
+    # Check if human feedback
+    human_analyst_feedback=state.get('human_analyst_feedback','approve')
+    if human_analyst_feedback.lower() != 'approve':
+        # Return to create_analysts
+        return "create_analysts"
+
+    # Otherwise kick off interviews in parallel via Send() API
+    else:
+        topic = state["topic"]
+        return [Send("conduct_interview", {"analyst": analyst,
+                                           "messages": [HumanMessage(
+                                               content=f"So you said you were writing an article on {topic}?"
+                                           )
+                                                       ]}) for analyst in state["analysts"]]
+
+# Write a report based on the interviews
+report_writer_instructions = """You are a technical writer creating a report on this overall topic: 
+
+{topic}
+    
+You have a team of analysts. Each analyst has done two things: 
+
+1. They conducted an interview with an expert on a specific sub-topic.
+2. They write up their finding into a memo.
+
+Your task: 
+
+1. You will be given a collection of memos from your analysts.
+2. Think carefully about the insights from each memo.
+3. Consolidate these into a crisp overall summary that ties together the central ideas from all of the memos. 
+4. Summarize the central points in each memo into a cohesive single narrative.
+
+To format your report:
+ 
+1. Use markdown formatting. 
+2. Include no pre-amble for the report.
+3. Use no sub-heading. 
+4. Start your report with a single title header: ## Insights
+5. Do not mention any analyst names in your report.
+6. Preserve any citations in the memos, which will be annotated in brackets, for example [1] or [2].
+7. Create a final, consolidated list of sources and add to a Sources section with the `## Sources` header.
+8. List your sources in order and do not repeat.
+
+[1] Source 1
+[2] Source 2
+
+Here are the memos from your analysts to build your report from: 
+
+{context}"""
+
+def write_report(state: ResearchGraphState):
+
+    """ Node to write the final report body """
+
+    # Full set of sections
+    sections = state["sections"]
