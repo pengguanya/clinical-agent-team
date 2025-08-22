@@ -434,3 +434,113 @@ def write_report(state: ResearchGraphState):
 
     # Full set of sections
     sections = state["sections"]
+    topic = state["topic"]
+
+    # Concat all sections together
+    formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
+    
+    # Summarize the sections into a final report
+    system_message = report_writer_instructions.format(topic=topic, context=formatted_str_sections)    
+    report = llm.invoke([SystemMessage(content=system_message)]+[HumanMessage(content=f"Write a report based upon these memos.")]) 
+    return {"content": report.content}
+
+# Write the introduction or conclusion
+intro_conclusion_instructions = """You are a technical writer finishing a report on {topic}
+
+You will be given all of the sections of the report.
+
+You job is to write a crisp and compelling introduction or conclusion section.
+
+The user will instruct you whether to write the introduction or conclusion.
+
+Include no pre-amble for either section.
+
+Target around 100 words, crisply previewing (for introduction) or recapping (for conclusion) all of the sections of the report.
+
+Use markdown formatting. 
+
+For your introduction, create a compelling title and use the # header for the title.
+
+For your introduction, use ## Introduction as the section header. 
+
+For your conclusion, use ## Conclusion as the section header.
+
+Here are the sections to reflect on for writing: {formatted_str_sections}"""
+
+def write_introduction(state: ResearchGraphState):
+
+    """ Node to write the introduction """
+
+    # Full set of sections
+    sections = state["sections"]
+    topic = state["topic"]
+
+    # Concat all sections together
+    formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
+    
+    # Summarize the sections into a final report
+    
+    instructions = intro_conclusion_instructions.format(topic=topic, formatted_str_sections=formatted_str_sections)    
+    intro = llm.invoke([instructions]+[HumanMessage(content=f"Write the report introduction")]) 
+    return {"introduction": intro.content}
+
+def write_conclusion(state: ResearchGraphState):
+
+    """ Node to write the conclusion """
+
+    # Full set of sections
+    sections = state["sections"]
+    topic = state["topic"]
+
+    # Concat all sections together
+    formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
+    
+    # Summarize the sections into a final report
+    
+    instructions = intro_conclusion_instructions.format(topic=topic, formatted_str_sections=formatted_str_sections)    
+    conclusion = llm.invoke([instructions]+[HumanMessage(content=f"Write the report conclusion")]) 
+    return {"conclusion": conclusion.content}
+
+def finalize_report(state: ResearchGraphState):
+
+    """ The is the "reduce" step where we gather all the sections, combine them, and reflect on them to write the intro/conclusion """
+
+    # Save full final report
+    content = state["content"]
+    if content.startswith("## Insights"):
+        content = content.strip("## Insights")
+    if "## Sources" in content:
+        try:
+            content, sources = content.split("\n## Sources\n")
+        except:
+            sources = None
+    else:
+        sources = None
+
+    final_report = state["introduction"] + "\n\n---\n\n" + content + "\n\n---\n\n" + state["conclusion"]
+    if sources is not None:
+        final_report += "\n\n## Sources\n" + sources
+    return {"final_report": final_report}
+
+# Add nodes and edges 
+builder = StateGraph(ResearchGraphState)
+builder.add_node("create_analysts", create_analysts)
+builder.add_node("human_feedback", human_feedback)
+builder.add_node("conduct_interview", interview_builder.compile())
+builder.add_node("write_report",write_report)
+builder.add_node("write_introduction",write_introduction)
+builder.add_node("write_conclusion",write_conclusion)
+builder.add_node("finalize_report",finalize_report)
+
+# Logic
+builder.add_edge(START, "create_analysts")
+builder.add_edge("create_analysts", "human_feedback")
+builder.add_conditional_edges("human_feedback", initiate_all_interviews, ["create_analysts", "conduct_interview"])
+builder.add_edge("conduct_interview", "write_report")
+builder.add_edge("conduct_interview", "write_introduction")
+builder.add_edge("conduct_interview", "write_conclusion")
+builder.add_edge(["write_conclusion", "write_report", "write_introduction"], "finalize_report")
+builder.add_edge("finalize_report", END)
+
+# Compile
+graph = builder.compile(interrupt_before=['human_feedback'])
