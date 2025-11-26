@@ -1,0 +1,48 @@
+define_study_objectives:
+  description: >
+    Define the primary and secondary objectives for the clinical study on {medical_condition}.
+    Identify the target patient population, inclusion/exclusion criteria, and the
+    primary endpoint (outcome measure) that will determine the success of the study.
+    Ensure the design is scientifically sound and ethically justifiable.
+  expected_output: >
+    A document outlining the Study Title, Rationale, Primary/Secondary Objectives,
+    Endpoints, and Eligibility Criteria.
+
+design_statistical_plan:
+  description: >
+    Based on the study objectives for {medical_condition}, determine the appropriate
+    statistical design (e.g., randomized controlled trial, cohort study).
+    Calculate the required sample size to achieve sufficient power.
+    Outline the statistical methods for analyzing the primary and secondary endpoints.
+  expected_output: >
+    A Statistical Analysis Plan (SAP) summary including Sample Size Calculation,
+    Randomization Method, and Statistical Tests to be used.
+
+plan_data_management:
+  description: >
+    Develop a high-level Data Management Plan for the {medical_condition} study.
+    Outline the key data points to be collected (eCRF modules), data validation steps,
+    and privacy considerations (GDPR/HIPAA).
+  expected_output: >
+    A Data Management Strategy document listing key CRF modules (e.g., Demographics,
+    Adverse Events) and data quality assurance procedures.
+
+draft_protocol:
+  description: >
+    Synthesize the outputs from the Principal Investigator, Biostatistician, and
+    Clinical Data Manager into a cohesive Clinical Study Protocol draft for {medical_condition}.
+    Ensure the document flows logically and covers all essential sections: Background,
+    Objectives, Study Design, Selection of Subjects, Treatment of Subjects,
+    Assessment of Efficacy/Safety, and Statistics.
+  expected_output: >
+    A complete draft of the Clinical Study Protocol ready for review.
+
+
+
+
+
+
+
+
+
+
